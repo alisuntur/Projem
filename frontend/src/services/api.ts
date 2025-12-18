@@ -20,8 +20,9 @@ export const customersApi = {
 };
 
 export const productsApi = {
-    getAll: async () => {
-        const response = await api.get('/products');
+    getAll: async (supplierId?: number) => {
+        const params = supplierId ? { supplierId } : {};
+        const response = await api.get('/products', { params });
         return response.data;
     },
     create: async (data: any) => {
@@ -66,6 +67,33 @@ export const purchasesApi = {
         const response = await api.patch(`/purchases/${id}/status`, { status });
         return response.data;
     }
-}
+};
+
+export const suppliersApi = {
+    getAll: async () => {
+        const response = await api.get('/suppliers');
+        return response.data;
+    },
+    getOne: async (id: number) => {
+        const response = await api.get(`/suppliers/${id}`);
+        return response.data;
+    },
+    create: async (data: any) => {
+        const response = await api.post('/suppliers', data);
+        return response.data;
+    },
+    delete: async (id: number) => {
+        const response = await api.delete(`/suppliers/${id}`);
+        return response.data;
+    },
+    addProduct: async (supplierId: number, productId: number) => {
+        const response = await api.post(`/suppliers/${supplierId}/products/${productId}`);
+        return response.data;
+    },
+    removeProduct: async (supplierId: number, productId: number) => {
+        const response = await api.delete(`/suppliers/${supplierId}/products/${productId}`);
+        return response.data;
+    }
+};
 
 export default api;
