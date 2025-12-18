@@ -59,6 +59,21 @@ export const salesApi = {
     }
 };
 
+export const financeApi = {
+    getStats: async () => {
+        const response = await api.get('/finance/stats');
+        return response.data;
+    },
+    getHistory: async () => {
+        const response = await api.get('/finance/history');
+        return response.data;
+    },
+    addPayment: async (data: any) => {
+        const response = await api.post('/finance/payment', data);
+        return response.data;
+    }
+};
+
 export const dashboardApi = {
     getOverview: async () => {
         const response = await api.get('/dashboard/overview');

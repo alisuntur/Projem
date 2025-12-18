@@ -9,7 +9,8 @@ import {
     LogOut,
     ShoppingBag,
     Factory,
-    Building2
+    Building2,
+    Wallet
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion } from 'framer-motion';
@@ -21,6 +22,7 @@ const SIDEBAR_ITEMS = [
     { icon: Building2, label: 'Tedarikçiler', path: '/suppliers' },
     { icon: Package, label: 'Stok', path: '/inventory' },
     { icon: Users, label: 'Müşteriler', path: '/customers' },
+    { icon: Wallet, label: 'Finans', path: '/finance' },
 ];
 
 export default function DashboardLayout() {

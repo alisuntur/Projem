@@ -2,12 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Customer } from './customer.entity';
+import { Payment } from '../finance/payment.entity';
+import { Sale } from '../sales/sale.entity';
 
 @Injectable()
 export class CustomersService {
     constructor(
         @InjectRepository(Customer)
         private customersRepository: Repository<Customer>,
+        @InjectRepository(Payment)
+        private paymentRepository: Repository<Payment>,
+        @InjectRepository(Sale)
+        private saleRepository: Repository<Sale>,
     ) { }
 
     create(createCustomerDto: Partial<Customer>) {
@@ -28,7 +34,15 @@ export class CustomersService {
         return this.findOne(id);
     }
 
-    remove(id: number) {
+    async remove(id: number) {
+        // 1. Delete related payments
+        await this.paymentRepository.delete({ partyType: 'customer', partyId: id });
+
+        // 2. Delete related sales (This will delete sale items via cascade if configured or we delete them explicitly if not)
+        // Since Sale -> SaleItem has Cascade, deleting Sale is enough.
+        await this.saleRepository.delete({ customer: { id } });
+
+        // 3. Delete customer
         return this.customersRepository.delete(id);
     }
 }

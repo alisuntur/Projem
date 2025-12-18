@@ -6,6 +6,7 @@ import Purchases from './pages/Purchases';
 import Inventory from './pages/Inventory';
 import Customers from './pages/Customers';
 import Suppliers from './pages/Suppliers';
+import Finance from './pages/Finance';
 import DashboardLayout from './layouts/DashboardLayout';
 import { ToastProvider } from './components/ui/Toast';
 
@@ -24,7 +25,9 @@ function App() {
               <Route path="/purchases" element={<Purchases />} />
               <Route path="/inventory" element={<Inventory />} />
               <Route path="/customers" element={<Customers />} />
+
               <Route path="/suppliers" element={<Suppliers />} />
+              <Route path="/finance" element={<Finance />} />
             </Route>
 
             <Route path="/" element={<Navigate to="/login" replace />} />

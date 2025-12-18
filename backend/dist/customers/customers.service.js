@@ -17,10 +17,16 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const customer_entity_1 = require("./customer.entity");
+const payment_entity_1 = require("../finance/payment.entity");
+const sale_entity_1 = require("../sales/sale.entity");
 let CustomersService = class CustomersService {
     customersRepository;
-    constructor(customersRepository) {
+    paymentRepository;
+    saleRepository;
+    constructor(customersRepository, paymentRepository, saleRepository) {
         this.customersRepository = customersRepository;
+        this.paymentRepository = paymentRepository;
+        this.saleRepository = saleRepository;
     }
     create(createCustomerDto) {
         const customer = this.customersRepository.create(createCustomerDto);
@@ -36,7 +42,9 @@ let CustomersService = class CustomersService {
         await this.customersRepository.update(id, updateCustomerDto);
         return this.findOne(id);
     }
-    remove(id) {
+    async remove(id) {
+        await this.paymentRepository.delete({ partyType: 'customer', partyId: id });
+        await this.saleRepository.delete({ customer: { id } });
         return this.customersRepository.delete(id);
     }
 };
@@ -44,6 +52,10 @@ exports.CustomersService = CustomersService;
 exports.CustomersService = CustomersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(customer_entity_1.Customer)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __param(1, (0, typeorm_1.InjectRepository)(payment_entity_1.Payment)),
+    __param(2, (0, typeorm_1.InjectRepository)(sale_entity_1.Sale)),
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
+        typeorm_2.Repository])
 ], CustomersService);
 //# sourceMappingURL=customers.service.js.map

@@ -15,7 +15,7 @@ export class Sale {
     @PrimaryGeneratedColumn('uuid') // Using UUID for order numbers like ORD-24-1001 (or just autoincrement ID mapped to string)
     id: string;
 
-    @ManyToOne(() => Customer, { eager: true }) // Eager load customer data
+    @ManyToOne(() => Customer, { eager: true, onDelete: 'CASCADE' }) // Cascade delete: Delete Sale if Customer is deleted
     @JoinColumn({ name: 'customer_id' })
     customer: Customer;
 

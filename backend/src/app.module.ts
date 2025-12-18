@@ -8,6 +8,7 @@ import { SalesModule } from './sales/sales.module';
 import { PurchasesModule } from './purchases/purchases.module';
 import { SuppliersModule } from './suppliers/suppliers.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { FinanceModule } from './finance/finance.module';
 
 @Module({
   imports: [
@@ -28,7 +29,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
     SalesModule,
     PurchasesModule,
     SuppliersModule,
-    DashboardModule
+    SalesModule,
+    PurchasesModule,
+    SuppliersModule,
+    DashboardModule,
+    FinanceModule
   ],
   controllers: [AppController],
   providers: [AppService],

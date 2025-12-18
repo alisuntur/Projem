@@ -35,7 +35,7 @@ __decorate([
     __metadata("design:type", String)
 ], Sale.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => customer_entity_1.Customer, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => customer_entity_1.Customer, { eager: true, onDelete: 'CASCADE' }),
     (0, typeorm_1.JoinColumn)({ name: 'customer_id' }),
     __metadata("design:type", customer_entity_1.Customer)
 ], Sale.prototype, "customer", void 0);

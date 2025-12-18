@@ -1,8 +1,12 @@
 import { Repository } from 'typeorm';
 import { Customer } from './customer.entity';
+import { Payment } from '../finance/payment.entity';
+import { Sale } from '../sales/sale.entity';
 export declare class CustomersService {
     private customersRepository;
-    constructor(customersRepository: Repository<Customer>);
+    private paymentRepository;
+    private saleRepository;
+    constructor(customersRepository: Repository<Customer>, paymentRepository: Repository<Payment>, saleRepository: Repository<Sale>);
     create(createCustomerDto: Partial<Customer>): Promise<Customer>;
     findAll(): Promise<Customer[]>;
     findOne(id: number): Promise<Customer | null>;
