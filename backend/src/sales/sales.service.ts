@@ -72,7 +72,9 @@ export class SalesService {
             if (customerId) {
                 const customer = await queryRunner.manager.findOne(Customer, { where: { id: customerId } });
                 if (customer) {
-                    customer.balance = Number(customer.balance) - Number(totalAmount); // Negative balance means debt in this context? Or positive? 
+                    // Logic: Positive Balance = Customer Debt (Alacak)
+                    // Sale increases debt.
+                    customer.balance = Number(customer.balance) + Number(totalAmount); 
                     // Usually: Debt is Positive, Credit is Negative OR
                     // Balance: Current money they have. If they buy on credit, balance decreases. 
                     // Let's assume Balance = Account Balance. Buying reduces it (making it more negative if they owe money).

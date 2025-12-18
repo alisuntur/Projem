@@ -16,6 +16,7 @@ let Supplier = class Supplier {
     id;
     name;
     type;
+    balance;
     contactInfo;
     address;
     products;
@@ -35,6 +36,10 @@ __decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], Supplier.prototype, "type", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2, default: 0 }),
+    __metadata("design:type", Number)
+], Supplier.prototype, "balance", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)

@@ -12,6 +12,9 @@ export class Supplier {
     @Column()
     type: string; // 'Factory', 'Wholesaler'
 
+    @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+    balance: number; // Positive = We owe them
+
     @Column({ nullable: true })
     contactInfo: string;
 

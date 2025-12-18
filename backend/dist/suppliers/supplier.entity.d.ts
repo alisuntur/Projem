@@ -3,6 +3,7 @@ export declare class Supplier {
     id: number;
     name: string;
     type: string;
+    balance: number;
     contactInfo: string;
     address: string;
     products: Product[];

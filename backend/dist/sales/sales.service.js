@@ -64,7 +64,7 @@ let SalesService = class SalesService {
             if (customerId) {
                 const customer = await queryRunner.manager.findOne(customer_entity_1.Customer, { where: { id: customerId } });
                 if (customer) {
-                    customer.balance = Number(customer.balance) - Number(totalAmount);
+                    customer.balance = Number(customer.balance) + Number(totalAmount);
                     await queryRunner.manager.save(customer);
                 }
             }
