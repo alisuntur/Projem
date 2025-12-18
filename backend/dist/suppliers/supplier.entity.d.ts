@@ -4,7 +4,6 @@ export declare class Supplier {
     name: string;
     type: string;
     balance: number;
-    balance: number;
     contactInfo: string;
     address: string;
     products: Product[];
