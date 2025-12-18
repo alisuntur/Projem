@@ -20,6 +20,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['sale', orderId] });
             queryClient.invalidateQueries({ queryKey: ['sales'] }); // Refresh list
+            queryClient.invalidateQueries({ queryKey: ['sales-stats'] }); // Refresh dashboard stats
             showToast('Sipariş durumu güncellendi.', 'success');
             setIsEditingStatus(false);
         },
@@ -70,7 +71,16 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                         <select
                             className="bg-background border border-accent rounded text-sm text-white px-2 py-1"
                             defaultValue={sale.status}
-                            onChange={(e) => updateStatusMutation.mutate({ id: orderId, status: e.target.value })}
+                            onChange={(e) => {
+                                const newStatus = e.target.value;
+                                const password = window.prompt('Durum değiştirmek için yönetici şifresini girin:');
+                                if (password === '1234') {
+                                    updateStatusMutation.mutate({ id: orderId, status: newStatus });
+                                } else {
+                                    showToast('Hatalı şifre! İşlem iptal edildi.', 'error');
+                                    e.target.value = sale.status; // Revert selection
+                                }
+                            }}
                         >
                             {steps.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>

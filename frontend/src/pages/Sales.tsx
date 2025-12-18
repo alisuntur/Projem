@@ -16,31 +16,19 @@ import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
 import SlideOver from '../components/SlideOver';
 import NewSaleForm from '../components/NewSaleForm';
-import FilterPanel from '../components/FilterPanel';
 import OrderDetail from '../components/OrderDetail';
 import { useToast } from '../components/ui/Toast';
 
-// Stats now need to be dynamic or removed if API provides them.
-// For now, we'll keep them static or mock them, but the list below will be live.
-// Ideally, fetch stats from a separate /stats endpoint.
-
 const StatusBadge = ({ status }: { status: string }) => {
     switch (status) {
-        case 'Delivered':
         case 'Teslim Edildi':
-        case 'Tamamlandı':
             return <span className="flex items-center text-green-400 text-xs px-2 py-1 bg-green-400/10 rounded-full border border-green-400/20"><CheckCircle2 size={12} className="mr-1" />Teslim Edildi</span>;
-        case 'Preparing':
         case 'Hazırlanıyor':
-        case 'Üretimde':
             return <span className="flex items-center text-blue-400 text-xs px-2 py-1 bg-blue-400/10 rounded-full border border-blue-400/20 animate-pulse"><Clock size={12} className="mr-1" />Hazırlanıyor</span>;
-        case 'Pending':
         case 'Bekliyor':
             return <span className="flex items-center text-yellow-400 text-xs px-2 py-1 bg-yellow-400/10 rounded-full border border-yellow-400/20"><AlertCircle size={12} className="mr-1" />Bekliyor</span>;
-        case 'Shipped':
-        case 'Kargoda':
         case 'Yolda':
-            return <span className="flex items-center text-purple-400 text-xs px-2 py-1 bg-purple-400/10 rounded-full border border-purple-400/20"><Clock size={12} className="mr-1" />Kargoda</span>;
+            return <span className="flex items-center text-purple-400 text-xs px-2 py-1 bg-purple-400/10 rounded-full border border-purple-400/20"><Clock size={12} className="mr-1" />Yolda</span>;
         default:
             return <span className="text-text-muted text-xs">{status}</span>;
     }
@@ -54,20 +42,24 @@ export default function Sales() {
     const [searchTerm, setSearchTerm] = useState('');
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
-    // Tab Status State
-    const [activeTab, setActiveTab] = useState('All'); // 'All', 'Bekliyor', 'Hazırlanıyor', 'Kargoda'
+    const [activeTab, setActiveTab] = useState('All');
 
     const [isNewSaleOpen, setIsNewSaleOpen] = useState(false);
-    const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
     const { showToast } = useToast();
 
-    // Fetch Sales from API with Pagination and Filters
+    // Fetch Stats
+    const { data: stats } = useQuery({
+        queryKey: ['sales-stats'],
+        queryFn: salesApi.getStats
+    });
+
+    // Fetch Sales
     const { data: salesData, isLoading, error } = useQuery({
         queryKey: ['sales', page, limit, searchTerm, activeTab],
         queryFn: () => salesApi.getAll(page, limit, searchTerm, activeTab === 'All' ? '' : activeTab),
-        keepPreviousData: true // Keep old data while fetching new page
+        keepPreviousData: true
     });
 
     const orders = salesData?.data?.map((sale: any) => ({
@@ -90,62 +82,69 @@ export default function Sales() {
 
     const handleTabChange = (status: string) => {
         setActiveTab(status);
-        setPage(1); // Reset to page 1 when filter changes
+        setPage(1);
     };
 
-    // Tabs Configuration
     const TABS = [
         { label: 'Tümü', value: 'All' },
         { label: 'Bekleyen', value: 'Bekliyor' },
         { label: 'Hazırlanıyor', value: 'Hazırlanıyor' },
-        { label: 'Kargoda', value: 'Kargoda' },
+        { label: 'Yolda', value: 'Yolda' },
+        { label: 'Teslim Edildi', value: 'Teslim Edildi' },
     ];
 
-    if (error) {
-        return (
-            <div className="flex items-center justify-center h-64 text-red-400">
-                Sipariş verileri alınırken bir hata oluştu.
-            </div>
-        );
-    }
+    if (error) return <div className="text-red-400">Error loading sales.</div>;
+
+    // Simple Chart Data Calculation
+    const total = stats?.total || 1; // avoid division by zero
+    const pendingPct = ((stats?.pending || 0) / total) * 100;
+    const preparingPct = ((stats?.preparing || 0) / total) * 100;
+    const onWayPct = ((stats?.onWay || 0) / total) * 100;
+    const deliveredPct = ((stats?.delivered || 0) / total) * 100;
 
     return (
         <>
             <div className="space-y-6">
-                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
-                        <h1 className="text-3xl font-bold text-white">Satışlar (Müşteri)</h1>
-                        <p className="text-text-muted mt-1">Müşterilere yapılan satışları buradan yönetin.</p>
+                        <h1 className="text-3xl font-bold text-white">Satışlar</h1>
+                        <p className="text-text-muted mt-1">Sipariş durumlarını buradan takip edebilirsiniz.</p>
                     </div>
                     <div className="flex gap-3">
-                        <button
-                            onClick={() => showToast('Excel dosyası indiriliyor...', 'success')}
-                            className="flex items-center px-4 py-2 bg-surface border border-accent rounded-lg text-sm hover:bg-accent transition-colors text-white"
-                        >
-                            <Download size={16} className="mr-2" />
-                            Excel İndir
-                        </button>
                         <button
                             onClick={() => setIsNewSaleOpen(true)}
                             className="flex items-center px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-primary-hover transition-colors shadow-lg shadow-primary/20"
                         >
                             <Plus size={16} className="mr-2" />
-                            Yeni Satış Yap
+                            Yeni Sipariş
                         </button>
                     </div>
                 </div>
 
-                {/* Live Tabs (Replacements for Stats Cards for now, or keep both?) 
-                    Let's use Tabs as the primary filter interface as requested "Tablolar canlı veriye göre güncellensin"
-                */}
-                <div className="flex space-x-1 bg-surface p-1 rounded-lg border border-accent inline-flex">
+                {/* Dashboard / Global Stats Chart */}
+                <div className="bg-surface border border-accent rounded-xl p-6">
+                    <h3 className="text-white font-medium mb-4">Sipariş Durum Özeti</h3>
+                    <div className="flex h-4 rounded-full overflow-hidden bg-background mb-4">
+                        <div style={{ width: `${pendingPct}%` }} className="bg-yellow-500/80 transition-all duration-1000" title={`Bekleyen: ${stats?.pending}`} />
+                        <div style={{ width: `${preparingPct}%` }} className="bg-blue-500/80 transition-all duration-1000" title={`Hazırlanıyor: ${stats?.preparing}`} />
+                        <div style={{ width: `${onWayPct}%` }} className="bg-purple-500/80 transition-all duration-1000" title={`Yolda: ${stats?.onWay}`} />
+                        <div style={{ width: `${deliveredPct}%` }} className="bg-green-500/80 transition-all duration-1000" title={`Teslim Edildi: ${stats?.delivered}`} />
+                    </div>
+                    <div className="flex justify-between text-xs text-text-muted">
+                        <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-yellow-500/80 mr-2" /> Bekleyen ({stats?.pending || 0})</div>
+                        <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-blue-500/80 mr-2" /> Hazırlanıyor ({stats?.preparing || 0})</div>
+                        <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-purple-500/80 mr-2" /> Yolda ({stats?.onWay || 0})</div>
+                        <div className="flex items-center"><div className="w-3 h-3 rounded-full bg-green-500/80 mr-2" /> Teslim Edildi ({stats?.delivered || 0})</div>
+                    </div>
+                </div>
+
+                <div className="flex space-x-1 bg-surface p-1 rounded-lg border border-accent inline-flex overflow-x-auto max-w-full">
                     {TABS.map((tab) => (
                         <button
                             key={tab.value}
                             onClick={() => handleTabChange(tab.value)}
                             className={cn(
-                                "px-4 py-2 rounded-md text-sm font-medium transition-colors",
+                                "px-4 py-2 rounded-md text-sm font-medium transition-colors whitespace-nowrap",
                                 activeTab === tab.value
                                     ? "bg-primary text-white shadow-sm"
                                     : "text-text-muted hover:text-white hover:bg-white/5"
@@ -156,24 +155,6 @@ export default function Sales() {
                     ))}
                 </div>
 
-                {/* Filters & Actions */}
-                <div className="flex gap-4">
-                    <div className="relative flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Sipariş no, müşteri veya marka ara..."
-                            className="w-full bg-surface border border-accent rounded-lg pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-primary placeholder-text-muted transition-all shadow-sm"
-                            value={searchTerm}
-                            onChange={(e) => {
-                                setSearchTerm(e.target.value);
-                                setPage(1);
-                            }}
-                        />
-                    </div>
-                </div>
-
-                {/* Table */}
                 <div className="bg-surface border border-accent rounded-xl overflow-hidden shadow-lg relative min-h-[400px]">
                     {isLoading && (
                         <div className="absolute inset-0 bg-surface/50 backdrop-blur-sm z-10 flex items-center justify-center">
@@ -187,7 +168,6 @@ export default function Sales() {
                                 <tr>
                                     <th className="px-6 py-4">Sipariş No</th>
                                     <th className="px-6 py-4">Müşteri</th>
-                                    <th className="px-6 py-4">İçerik</th>
                                     <th className="px-6 py-4">Tarih</th>
                                     <th className="px-6 py-4">Tutar</th>
                                     <th className="px-6 py-4">Durum</th>
@@ -197,7 +177,7 @@ export default function Sales() {
                             <tbody className="divide-y divide-accent">
                                 {orders.length === 0 && !isLoading && (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-8 text-center text-text-muted">
+                                        <td colSpan={6} className="px-6 py-8 text-center text-text-muted">
                                             Kayıt bulunamadı.
                                         </td>
                                     </tr>
@@ -213,9 +193,6 @@ export default function Sales() {
                                     >
                                         <td className="px-6 py-4 font-medium text-white">#{order.id}</td>
                                         <td className="px-6 py-4 text-text-muted">{order.customer}</td>
-                                        <td className="px-6 py-4">
-                                            <BrandBadge brand={order.brand} />
-                                        </td>
                                         <td className="px-6 py-4 text-text-muted">{order.date}</td>
                                         <td className="px-6 py-4 font-bold text-white">{order.amount}</td>
                                         <td className="px-6 py-4">
@@ -232,7 +209,6 @@ export default function Sales() {
                         </table>
                     </div>
 
-                    {/* Pagination */}
                     <div className="p-4 border-t border-accent flex justify-between items-center text-xs text-text-muted">
                         <span>Toplam {totalRecords} kayıt gösteriliyor. Sayfa {page} / {totalPages}</span>
                         <div className="flex gap-2">
