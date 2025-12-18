@@ -5,7 +5,7 @@ import { SaleItem } from './sale-item.entity';
 export enum SaleStatus {
     PENDING = 'Bekliyor',
     PREPARING = 'Hazırlanıyor',
-    SHIPPED = 'Kargoda',
+    ON_WAY = 'Yolda',
     DELIVERED = 'Teslim Edildi',
     CANCELLED = 'İptal',
 }

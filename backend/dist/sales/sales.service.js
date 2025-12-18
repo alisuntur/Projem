@@ -96,6 +96,20 @@ let SalesService = class SalesService {
             .getManyAndCount();
         return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
+    async getStats() {
+        const total = await this.salesRepository.count();
+        const pending = await this.salesRepository.count({ where: { status: sale_entity_1.SaleStatus.PENDING } });
+        const preparing = await this.salesRepository.count({ where: { status: sale_entity_1.SaleStatus.PREPARING } });
+        const onWay = await this.salesRepository.count({ where: { status: sale_entity_1.SaleStatus.ON_WAY } });
+        const delivered = await this.salesRepository.count({ where: { status: sale_entity_1.SaleStatus.DELIVERED } });
+        return {
+            total,
+            pending,
+            preparing,
+            onWay,
+            delivered
+        };
+    }
     async updateStatus(id, status) {
         const sale = await this.findOne(id);
         if (!sale)

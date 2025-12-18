@@ -52,6 +52,10 @@ export const salesApi = {
     updateStatus: async (id: string, status: string) => {
         const response = await api.patch(`/sales/${id}/status`, { status });
         return response.data;
+    },
+    getStats: async () => {
+        const response = await api.get('/sales/stats');
+        return response.data;
     }
 };
 

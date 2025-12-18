@@ -17,7 +17,7 @@ var SaleStatus;
 (function (SaleStatus) {
     SaleStatus["PENDING"] = "Bekliyor";
     SaleStatus["PREPARING"] = "Haz\u0131rlan\u0131yor";
-    SaleStatus["SHIPPED"] = "Kargoda";
+    SaleStatus["ON_WAY"] = "Yolda";
     SaleStatus["DELIVERED"] = "Teslim Edildi";
     SaleStatus["CANCELLED"] = "\u0130ptal";
 })(SaleStatus || (exports.SaleStatus = SaleStatus = {}));

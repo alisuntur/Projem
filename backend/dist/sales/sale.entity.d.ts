@@ -3,7 +3,7 @@ import { SaleItem } from './sale-item.entity';
 export declare enum SaleStatus {
     PENDING = "Bekliyor",
     PREPARING = "Haz\u0131rlan\u0131yor",
-    SHIPPED = "Kargoda",
+    ON_WAY = "Yolda",
     DELIVERED = "Teslim Edildi",
     CANCELLED = "\u0130ptal"
 }

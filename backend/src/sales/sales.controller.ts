@@ -21,6 +21,11 @@ export class SalesController {
         return this.salesService.findAll(page ? +page : 1, limit ? +limit : 10, search, status);
     }
 
+    @Get('stats')
+    getStats() {
+        return this.salesService.getStats();
+    }
+
     @Patch(':id/status')
     updateStatus(@Param('id') id: string, @Body('status') status: string) {
         return this.salesService.updateStatus(id, status);

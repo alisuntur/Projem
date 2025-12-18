@@ -113,6 +113,22 @@ export class SalesService {
         return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
     }
 
+    async getStats() {
+        const total = await this.salesRepository.count();
+        const pending = await this.salesRepository.count({ where: { status: SaleStatus.PENDING } });
+        const preparing = await this.salesRepository.count({ where: { status: SaleStatus.PREPARING } });
+        const onWay = await this.salesRepository.count({ where: { status: SaleStatus.ON_WAY } });
+        const delivered = await this.salesRepository.count({ where: { status: SaleStatus.DELIVERED } });
+
+        return {
+            total,
+            pending,
+            preparing,
+            onWay,
+            delivered
+        };
+    }
+
     async updateStatus(id: string, status: string) {
         const sale = await this.findOne(id);
         if (!sale) throw new BadRequestException('Böyle bir satış bulunamadı.');

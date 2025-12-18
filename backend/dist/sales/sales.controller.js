@@ -27,6 +27,9 @@ let SalesController = class SalesController {
     findAll(page, limit, search, status) {
         return this.salesService.findAll(page ? +page : 1, limit ? +limit : 10, search, status);
     }
+    getStats() {
+        return this.salesService.getStats();
+    }
     updateStatus(id, status) {
         return this.salesService.updateStatus(id, status);
     }
@@ -52,6 +55,12 @@ __decorate([
     __metadata("design:paramtypes", [String, String, String, String]),
     __metadata("design:returntype", void 0)
 ], SalesController.prototype, "findAll", null);
+__decorate([
+    (0, common_1.Get)('stats'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], SalesController.prototype, "getStats", null);
 __decorate([
     (0, common_1.Patch)(':id/status'),
     __param(0, (0, common_1.Param)('id')),

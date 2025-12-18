@@ -11,6 +11,13 @@ export declare class SalesController {
         limit: number;
         totalPages: number;
     }>;
+    getStats(): Promise<{
+        total: number;
+        pending: number;
+        preparing: number;
+        onWay: number;
+        delivered: number;
+    }>;
     updateStatus(id: string, status: string): Promise<import("./sale.entity").Sale>;
     findOne(id: string): Promise<import("./sale.entity").Sale | null>;
 }

@@ -13,6 +13,13 @@ export declare class SalesService {
         limit: number;
         totalPages: number;
     }>;
+    getStats(): Promise<{
+        total: number;
+        pending: number;
+        preparing: number;
+        onWay: number;
+        delivered: number;
+    }>;
     updateStatus(id: string, status: string): Promise<Sale>;
     findOne(id: string): Promise<Sale | null>;
 }

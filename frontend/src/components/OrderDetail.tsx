@@ -41,7 +41,7 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
         return <div className="text-center py-8 text-text-muted">Sipariş bulunamadı.</div>;
     }
 
-    const steps = ['Bekliyor', 'Hazırlanıyor', 'Kargoda', 'Teslim Edildi'];
+    const steps = ['Bekliyor', 'Hazırlanıyor', 'Yolda', 'Teslim Edildi'];
     const currentStepIndex = steps.indexOf(sale.status) === -1 ? 0 : steps.indexOf(sale.status);
 
     return (
