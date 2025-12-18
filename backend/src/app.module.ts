@@ -26,11 +26,6 @@ import { FinanceModule } from './finance/finance.module';
     ProductsModule,
     SalesModule,
     PurchasesModule,
-    SalesModule,
-    PurchasesModule,
-    SuppliersModule,
-    SalesModule,
-    PurchasesModule,
     SuppliersModule,
     DashboardModule,
     FinanceModule

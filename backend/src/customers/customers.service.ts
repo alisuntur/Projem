@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Customer } from './customer.entity';
 import { Payment } from '../finance/payment.entity';
 import { Sale } from '../sales/sale.entity';
+import { SaleItem } from '../sales/sale-item.entity';
 
 @Injectable()
 export class CustomersService {
@@ -35,14 +36,39 @@ export class CustomersService {
     }
 
     async remove(id: number) {
-        // 1. Delete related payments
-        await this.paymentRepository.delete({ partyType: 'customer', partyId: id });
+        // NUCLEAR OPTION: Raw SQL to bypass all ORM checks
+        const queryRunner = this.customersRepository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-        // 2. Delete related sales (This will delete sale items via cascade if configured or we delete them explicitly if not)
-        // Since Sale -> SaleItem has Cascade, deleting Sale is enough.
-        await this.saleRepository.delete({ customer: { id } });
+        try {
+            console.log(`Deleting customer ${id} with RAW SQL...`);
 
-        // 3. Delete customer
-        return this.customersRepository.delete(id);
+            // 1. Delete Sale Items linked to Sales of this Customer
+            await queryRunner.query(`
+                DELETE FROM sale_items 
+                WHERE "sale_id" IN (SELECT id FROM sales WHERE "customer_id" = $1)
+            `, [id]);
+
+            // 2. Delete Sales
+            await queryRunner.query(`DELETE FROM sales WHERE "customer_id" = $1`, [id]);
+
+            // 3. Delete Payments
+            // Note: partyId is integer, partyType is string
+            await queryRunner.query(`DELETE FROM payments WHERE "partyId" = $1 AND "partyType" = 'customer'`, [id]);
+
+            // 4. Delete Customer
+            await queryRunner.query(`DELETE FROM customers WHERE id = $1`, [id]);
+
+            await queryRunner.commitTransaction();
+            console.log(`Customer ${id} deleted successfully.`);
+            return { deleted: true };
+        } catch (err) {
+            console.error('NUCLEAR DELETE ERROR:', err);
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
     }
 }

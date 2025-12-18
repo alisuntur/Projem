@@ -6,7 +6,7 @@ require("dotenv/config");
 const dataSource = new typeorm_1.DataSource({
     type: "postgres",
     host: process.env.DB_HOST || "localhost",
-    port: parseInt(process.env.DB_PORT) || 5432,
+    port: parseInt(process.env.DB_PORT || '5432') || 5432,
     username: process.env.DB_USERNAME || "postgres",
     password: process.env.DB_PASSWORD || "postgres",
     database: process.env.DB_NAME || "stitch_db",
@@ -25,15 +25,15 @@ async function cleanup() {
         await repo.remove(emptyCustomers);
     }
     const allCustomers = await repo.find();
-    const seen, names = new Set();
+    const seenNames = new Set();
     const toDelete = [];
     allCustomers.sort((a, b) => a.id - b.id);
     for (const c of allCustomers) {
-        if (c.name && seen.has(c.name.trim().toLowerCase())) {
+        if (c.name && seenNames.has(c.name.trim().toLowerCase())) {
             toDelete.push(c);
         }
         else if (c.name) {
-            seen.add(c.name.trim().toLowerCase());
+            seenNames.add(c.name.trim().toLowerCase());
         }
     }
     console.log(`Found ${toDelete.length} duplicate customers. Deleting...`);

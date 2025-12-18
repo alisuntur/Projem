@@ -11,5 +11,7 @@ export declare class CustomersService {
     findAll(): Promise<Customer[]>;
     findOne(id: number): Promise<Customer | null>;
     update(id: number, updateCustomerDto: Partial<Customer>): Promise<Customer | null>;
-    remove(id: number): Promise<import("typeorm").DeleteResult>;
+    remove(id: number): Promise<{
+        deleted: boolean;
+    }>;
 }

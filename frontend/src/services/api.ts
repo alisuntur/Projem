@@ -17,6 +17,10 @@ export const customersApi = {
         const response = await api.post('/customers', data);
         return response.data;
     },
+    delete: async (id: number) => {
+        const response = await api.delete(`/customers/${id}`);
+        return response.data;
+    },
 };
 
 export const productsApi = {

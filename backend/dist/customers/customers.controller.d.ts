@@ -7,5 +7,7 @@ export declare class CustomersController {
     findAll(): Promise<Customer[]>;
     findOne(id: string): Promise<Customer | null>;
     update(id: string, updateCustomerDto: Partial<Customer>): Promise<Customer | null>;
-    remove(id: string): Promise<import("typeorm").DeleteResult>;
+    remove(id: string): Promise<{
+        deleted: boolean;
+    }>;
 }

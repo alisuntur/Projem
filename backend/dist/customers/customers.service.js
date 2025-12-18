@@ -43,9 +43,30 @@ let CustomersService = class CustomersService {
         return this.findOne(id);
     }
     async remove(id) {
-        await this.paymentRepository.delete({ partyType: 'customer', partyId: id });
-        await this.saleRepository.delete({ customer: { id } });
-        return this.customersRepository.delete(id);
+        const queryRunner = this.customersRepository.manager.connection.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            console.log(`Deleting customer ${id} with RAW SQL...`);
+            await queryRunner.query(`
+                DELETE FROM sale_items 
+                WHERE "sale_id" IN (SELECT id FROM sales WHERE "customer_id" = $1)
+            `, [id]);
+            await queryRunner.query(`DELETE FROM sales WHERE "customer_id" = $1`, [id]);
+            await queryRunner.query(`DELETE FROM payments WHERE "partyId" = $1 AND "partyType" = 'customer'`, [id]);
+            await queryRunner.query(`DELETE FROM customers WHERE id = $1`, [id]);
+            await queryRunner.commitTransaction();
+            console.log(`Customer ${id} deleted successfully.`);
+            return { deleted: true };
+        }
+        catch (err) {
+            console.error('NUCLEAR DELETE ERROR:', err);
+            await queryRunner.rollbackTransaction();
+            throw err;
+        }
+        finally {
+            await queryRunner.release();
+        }
     }
 };
 exports.CustomersService = CustomersService;

@@ -68,16 +68,14 @@ export class SalesService {
             // 3. Save Sale (Cascade will save items)
             const savedSale = await queryRunner.manager.save(Sale, sale);
 
-            // 4. Update Customer Balance (Optional: Add sale amount to debt?)
+            // 4. Update Customer Balance
+            // Mantık: Satış yapılınca müşteri bize borçlanır (bakiye NEGATİFe gider)
+            // Tahsilat yapınca bakiye 0'a yaklaşır
             if (customerId) {
                 const customer = await queryRunner.manager.findOne(Customer, { where: { id: customerId } });
                 if (customer) {
-                    // Logic: Positive Balance = Customer Debt (Alacak)
-                    // Sale increases debt.
-                    customer.balance = Number(customer.balance) + Number(totalAmount); 
-                    // Usually: Debt is Positive, Credit is Negative OR
-                    // Balance: Current money they have. If they buy on credit, balance decreases. 
-                    // Let's assume Balance = Account Balance. Buying reduces it (making it more negative if they owe money).
+                    // Satış: Bakiye azalır (negatife gider = borç oluşur)
+                    customer.balance = Number(customer.balance) - Number(totalAmount);
                     await queryRunner.manager.save(customer);
                 }
             }

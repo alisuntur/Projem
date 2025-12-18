@@ -222,8 +222,8 @@ export default function Customers() {
                             </div>
                         </motion.div>
                     ))}
-                </div>
-            </div>
+                </div >
+            </div >
 
             <SlideOver
                 isOpen={isNewCustomerOpen}

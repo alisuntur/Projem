@@ -4,6 +4,7 @@ import { Repository, DataSource } from 'typeorm';
 import { Purchase, PurchaseStatus } from './purchase.entity';
 import { PurchaseItem } from './purchase-item.entity';
 import { Product } from '../products/product.entity';
+import { Supplier } from '../suppliers/supplier.entity';
 import { CreatePurchaseDto } from './create-purchase.dto';
 
 @Injectable()
@@ -11,6 +12,8 @@ export class PurchasesService {
     constructor(
         @InjectRepository(Purchase)
         private purchasesRepository: Repository<Purchase>,
+        @InjectRepository(Supplier)
+        private supplierRepository: Repository<Supplier>,
         private dataSource: DataSource,
     ) { }
 
@@ -59,7 +62,17 @@ export class PurchasesService {
         purchase.items = purchaseItems;
         purchase.totalAmount = totalAmount;
 
-        return this.purchasesRepository.save(purchase);
+        const savedPurchase = await this.purchasesRepository.save(purchase);
+
+        // Update Supplier Balance (Borcumuz artar)
+        // Find supplier by name
+        const supplier = await this.supplierRepository.findOne({ where: { name: factoryName } });
+        if (supplier) {
+            supplier.balance = Number(supplier.balance) + Number(totalAmount);
+            await this.supplierRepository.save(supplier);
+        }
+
+        return savedPurchase;
     }
 
     findAll() {

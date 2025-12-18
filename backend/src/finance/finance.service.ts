@@ -52,14 +52,14 @@ export class FinanceService {
                 if (!customer) throw new BadRequestException('Customer not found');
                 payment.partyName = customer.name;
 
-                if (type === PaymentType.INCOME) {
-                    // Tahsilat: Customer pays us -> Debt decreases
-                    customer.balance = Number(customer.balance) - Number(amount);
-                } else {
-                    // Refund/Expense for customer? Usually Income.
-                    // If we pay customer (refund), debt increases (or asset decreases) logic depends.
-                    // Assuming basic flow: INCOME = Collection.
+                // Tahsilat (income): Müşteriden para aldık -> Bakiye ARTAR (0'a yaklaşır)
+                // Müşteri bakiyesi NEGATİF ise bize borçlu demek (-5000 gibi)
+                // Tahsilat yapınca: -5000 + 5000 = 0
+                if (type === 'income') {
                     customer.balance = Number(customer.balance) + Number(amount);
+                } else {
+                    // Müşteriye iade/ödeme yaptık -> Borç artar (daha negatif)
+                    customer.balance = Number(customer.balance) - Number(amount);
                 }
                 await queryRunner.manager.save(customer);
 
@@ -68,11 +68,12 @@ export class FinanceService {
                 if (!supplier) throw new BadRequestException('Supplier not found');
                 payment.partyName = supplier.name;
 
-                if (type === PaymentType.EXPENSE) {
-                    // Ödeme: We pay supplier -> Debt decreases
+                // Ödeme (expense): Tedarikçiye para verdik -> Borcumuz azalır
+                // Supplier bakiyesi + ise biz ona borçluyuz demek
+                if (type === 'expense') {
                     supplier.balance = Number(supplier.balance) - Number(amount);
                 } else {
-                    // Supplier pays us (refund)?
+                    // Tedarikçiden iade aldık -> Borcumuz artar
                     supplier.balance = Number(supplier.balance) + Number(amount);
                 }
                 await queryRunner.manager.save(supplier);

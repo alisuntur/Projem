@@ -38,11 +38,6 @@ exports.AppModule = AppModule = __decorate([
             products_module_1.ProductsModule,
             sales_module_1.SalesModule,
             purchases_module_1.PurchasesModule,
-            sales_module_1.SalesModule,
-            purchases_module_1.PurchasesModule,
-            suppliers_module_1.SuppliersModule,
-            sales_module_1.SalesModule,
-            purchases_module_1.PurchasesModule,
             suppliers_module_1.SuppliersModule,
             dashboard_module_1.DashboardModule,
             finance_module_1.FinanceModule

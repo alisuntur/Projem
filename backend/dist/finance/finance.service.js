@@ -58,11 +58,11 @@ let FinanceService = class FinanceService {
                 if (!customer)
                     throw new common_1.BadRequestException('Customer not found');
                 payment.partyName = customer.name;
-                if (type === payment_entity_1.PaymentType.INCOME) {
-                    customer.balance = Number(customer.balance) - Number(amount);
+                if (type === 'income') {
+                    customer.balance = Number(customer.balance) + Number(amount);
                 }
                 else {
-                    customer.balance = Number(customer.balance) + Number(amount);
+                    customer.balance = Number(customer.balance) - Number(amount);
                 }
                 await queryRunner.manager.save(customer);
             }
@@ -71,7 +71,7 @@ let FinanceService = class FinanceService {
                 if (!supplier)
                     throw new common_1.BadRequestException('Supplier not found');
                 payment.partyName = supplier.name;
-                if (type === payment_entity_1.PaymentType.EXPENSE) {
+                if (type === 'expense') {
                     supplier.balance = Number(supplier.balance) - Number(amount);
                 }
                 else {

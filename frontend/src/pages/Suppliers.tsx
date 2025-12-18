@@ -106,7 +106,16 @@ export default function Suppliers() {
                                     </button>
                                 </div>
                                 <h3 className="text-white font-medium text-lg">{supplier.name}</h3>
-                                <p className="text-text-muted text-sm mb-4">{supplier.type === 'Factory' ? 'Fabrika' : 'Toptancı'}</p>
+                                <p className="text-text-muted text-sm mb-2">{supplier.type === 'Factory' ? 'Fabrika' : 'Toptancı'}</p>
+
+                                {/* Bakiye */}
+                                <div className="mb-4">
+                                    <span className="text-xs text-text-muted">Bakiye: </span>
+                                    <span className={`font-semibold ${Number(supplier.balance || 0) > 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                        ₺{Number(supplier.balance || 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                                    </span>
+                                    {Number(supplier.balance || 0) > 0 && <span className="text-xs text-red-400 ml-1">(Borçlu)</span>}
+                                </div>
 
                                 <div className="flex items-center justify-between text-sm border-t border-accent pt-3">
                                     <div className="flex items-center text-text-muted">

@@ -19,11 +19,14 @@ const typeorm_2 = require("typeorm");
 const purchase_entity_1 = require("./purchase.entity");
 const purchase_item_entity_1 = require("./purchase-item.entity");
 const product_entity_1 = require("../products/product.entity");
+const supplier_entity_1 = require("../suppliers/supplier.entity");
 let PurchasesService = class PurchasesService {
     purchasesRepository;
+    supplierRepository;
     dataSource;
-    constructor(purchasesRepository, dataSource) {
+    constructor(purchasesRepository, supplierRepository, dataSource) {
         this.purchasesRepository = purchasesRepository;
+        this.supplierRepository = supplierRepository;
         this.dataSource = dataSource;
     }
     async create(createPurchaseDto) {
@@ -54,7 +57,13 @@ let PurchasesService = class PurchasesService {
         }
         purchase.items = purchaseItems;
         purchase.totalAmount = totalAmount;
-        return this.purchasesRepository.save(purchase);
+        const savedPurchase = await this.purchasesRepository.save(purchase);
+        const supplier = await this.supplierRepository.findOne({ where: { name: factoryName } });
+        if (supplier) {
+            supplier.balance = Number(supplier.balance) + Number(totalAmount);
+            await this.supplierRepository.save(supplier);
+        }
+        return savedPurchase;
     }
     findAll() {
         return this.purchasesRepository.find({ relations: ['items'], order: { date: 'DESC' } });
@@ -147,7 +156,9 @@ exports.PurchasesService = PurchasesService;
 exports.PurchasesService = PurchasesService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(purchase_entity_1.Purchase)),
+    __param(1, (0, typeorm_1.InjectRepository)(supplier_entity_1.Supplier)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.DataSource])
 ], PurchasesService);
 //# sourceMappingURL=purchases.service.js.map
