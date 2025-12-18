@@ -41,6 +41,10 @@ export const productsApi = {
         const response = await api.patch(`/products/${id}`, data);
         return response.data;
     },
+    delete: async (id: number) => {
+        const response = await api.delete(`/products/${id}`);
+        return response.data;
+    },
 };
 
 export const salesApi = {
@@ -94,8 +98,16 @@ export const purchasesApi = {
         const response = await api.get('/purchases');
         return response.data;
     },
+    getOne: async (id: string) => {
+        const response = await api.get(`/purchases/${id}`);
+        return response.data;
+    },
     create: async (data: any) => {
         const response = await api.post('/purchases', data);
+        return response.data;
+    },
+    update: async (id: string, data: any) => {
+        const response = await api.patch(`/purchases/${id}`, data);
         return response.data;
     },
     receive: async (id: string) => {

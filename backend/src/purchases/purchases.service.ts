@@ -79,6 +79,57 @@ export class PurchasesService {
         return this.purchasesRepository.find({ relations: ['items'], order: { date: 'DESC' } });
     }
 
+    findOne(id: string) {
+        return this.purchasesRepository.findOne({ where: { id }, relations: ['items'] });
+    }
+
+    async update(id: string, updateData: any) {
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+
+        try {
+            const purchase = await queryRunner.manager.findOne(Purchase, {
+                where: { id },
+                relations: ['items']
+            });
+            if (!purchase) throw new Error('Purchase not found');
+
+            // Update items if provided
+            if (updateData.items && Array.isArray(updateData.items)) {
+                let newTotal = 0;
+
+                for (const itemUpdate of updateData.items) {
+                    const existingItem = purchase.items.find(i => i.id === itemUpdate.id);
+                    if (existingItem) {
+                        existingItem.quantity = itemUpdate.quantity ?? existingItem.quantity;
+                        existingItem.unitPrice = itemUpdate.unitPrice ?? existingItem.unitPrice;
+                        existingItem.totalPrice = Number(existingItem.unitPrice) * Number(existingItem.quantity);
+                        await queryRunner.manager.save(existingItem);
+                        newTotal += existingItem.totalPrice;
+                    }
+                }
+
+                purchase.totalAmount = newTotal;
+            }
+
+            // Update factoryName if provided
+            if (updateData.factoryName) {
+                purchase.factoryName = updateData.factoryName;
+            }
+
+            await queryRunner.manager.save(purchase);
+            await queryRunner.commitTransaction();
+
+            return this.findOne(id);
+        } catch (err) {
+            await queryRunner.rollbackTransaction();
+            throw err;
+        } finally {
+            await queryRunner.release();
+        }
+    }
+
     // Method to receive goods and update stock
     async receivePurchase(id: string) {
         const queryRunner = this.dataSource.createQueryRunner();

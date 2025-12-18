@@ -27,7 +27,7 @@ export default function Login() {
                     className="absolute inset-0 w-full h-full object-cover"
                 />
                 <div className="relative z-20 p-10 text-white">
-                    <h1 className="text-5xl font-bold mb-4">Stitch.</h1>
+                    <h1 className="text-5xl font-bold mb-4">Halı Sarayı</h1>
                     <p className="text-xl text-gray-300">Premium Halı Bayi Yönetim Sistemi</p>
                 </div>
             </div>
@@ -116,6 +116,11 @@ export default function Login() {
                         </button>
                     </form>
                 </motion.div>
+
+                {/* Footer */}
+                <div className="absolute bottom-4 left-0 right-0 text-center text-text-muted text-sm">
+                    © 2025 Anka. Tüm Hakları Saklıdır.
+                </div>
             </div>
         </div>
     );

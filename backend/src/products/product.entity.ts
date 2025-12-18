@@ -18,8 +18,14 @@ export class Product {
     @Column({ nullable: true })
     category: string;
 
+    @Column({ type: 'decimal', precision: 6, scale: 2, nullable: true })
+    width: number; // En (cm)
+
+    @Column({ type: 'decimal', precision: 6, scale: 2, nullable: true })
+    height: number; // Boy (cm)
+
     @Column({ nullable: true })
-    size: string;
+    size: string; // Legacy or computed display
 
     @Column({ type: 'int', default: 0 })
     stock: number; // Current Stock Quantity
@@ -42,3 +48,4 @@ export class Product {
     @ManyToMany(() => Supplier, (supplier) => supplier.products)
     suppliers: Supplier[];
 }
+

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productsApi } from '../services/api';
 import {
     Search,
@@ -7,7 +7,8 @@ import {
     AlertTriangle,
     Package,
     SlidersHorizontal,
-    Loader2
+    Loader2,
+    Trash2
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
@@ -15,7 +16,7 @@ import SlideOver from '../components/SlideOver';
 import NewProductForm from '../components/NewProductForm';
 import ProductDetail from '../components/ProductDetail';
 import EditProductForm from '../components/EditProductForm';
-// import { useToast } from '../components/ui/Toast';
+import { useToast } from '../components/ui/Toast';
 
 const StockBadge = ({ stock, status }: { stock: number, status: string }) => {
     if (Number(stock) === 0) {
@@ -52,12 +53,31 @@ export default function Inventory() {
     const [isEditOpen, setIsEditOpen] = useState(false);
 
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
-    // const { showToast } = useToast(); // Removed if not used in this file directly
+    const { showToast } = useToast();
+    const queryClient = useQueryClient();
+
+    // Delete mutation
+    const deleteMutation = useMutation({
+        mutationFn: productsApi.delete,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] });
+            showToast('Ürün başarıyla silindi.', 'success');
+        },
+        onError: () => {
+            showToast('Ürün silinirken bir hata oluştu.', 'error');
+        }
+    });
+
+    const handleDeleteClick = (item: any) => {
+        if (confirm(`"${item.name}" ürününü silmek istediğinize emin misiniz? Bu işlem geri alınamaz ve ilişkili satış/satın alma kayıtları da silinecektir.`)) {
+            deleteMutation.mutate(item.id);
+        }
+    };
 
     // Fetch Products from API
     const { data: productsData, isLoading, error } = useQuery({
         queryKey: ['products'],
-        queryFn: productsApi.getAll,
+        queryFn: () => productsApi.getAll(),
     });
 
     // Map Backend Entity to UI Model
@@ -66,14 +86,20 @@ export default function Inventory() {
         name: p.name,
         sku: p.sku,
         brand: p.brand || 'Bilinmiyor',
-        size: p.size || '-',
+        width: p.width,
+        height: p.height,
+        size: p.width && p.height ? `${p.width}x${p.height} cm` : (p.size || '-'),
         stock: p.stock,
-        rawPrice: p.price, // Pass raw price for editing to avoid parsing errors
+        rawPrice: p.price,
         price: `₺${Number(p.price).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}`,
-        image: p.imageUrl || 'bg-indigo-900', // Use backend imageUrl or fallback
+        image: p.imageUrl || 'bg-indigo-900',
         status: p.stock === 0 ? 'Out of Stock' : (p.stock <= p.criticalLevel ? 'Critical' : 'In Stock'),
-        criticalLevel: p.criticalLevel // Ensure this is mapped for editing
+        criticalLevel: p.criticalLevel
     })) || [];
+
+    // Dynamic filter options from data
+    const uniqueBrands: string[] = ['Tüm Markalar', ...Array.from(new Set(inventoryItems.map((item: any) => item.brand).filter(Boolean) as string[]))];
+    const uniqueSizes: string[] = ['Tüm Ebatlar', ...Array.from(new Set(inventoryItems.map((item: any) => item.size).filter((s: any) => s !== '-') as string[]))];
 
     const filteredItems = inventoryItems.filter((item: any) => {
         const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -150,22 +176,18 @@ export default function Inventory() {
                             onChange={(e) => setFilterBrand(e.target.value)}
                             className="bg-background border border-accent rounded-lg px-3 py-2.5 text-sm text-text-muted focus:outline-none hover:text-white cursor-pointer min-w-[120px]"
                         >
-                            <option>Tüm Markalar</option>
-                            <option>Merinos</option>
-                            <option>Padişah</option>
-                            <option>Brillant</option>
-                            <option>Diğer</option>
+                            {uniqueBrands.map((brand: string) => (
+                                <option key={brand}>{brand}</option>
+                            ))}
                         </select>
                         <select
                             value={filterSize}
                             onChange={(e) => setFilterSize(e.target.value)}
                             className="bg-background border border-accent rounded-lg px-3 py-2.5 text-sm text-text-muted focus:outline-none hover:text-white cursor-pointer min-w-[120px]"
                         >
-                            <option>Tüm Ebatlar</option>
-                            <option>80x150</option>
-                            <option>160x230</option>
-                            <option>200x290</option>
-                            <option>120x180</option>
+                            {uniqueSizes.map((size: string) => (
+                                <option key={size}>{size}</option>
+                            ))}
                         </select>
                         <button className="flex items-center px-4 py-2.5 bg-background border border-accent rounded-lg text-sm text-text-muted hover:text-white hover:bg-white/5 transition-colors whitespace-nowrap">
                             <SlidersHorizontal size={16} className="mr-2" />
@@ -237,6 +259,14 @@ export default function Inventory() {
                                     className="px-4 py-2 text-sm text-text-muted hover:text-primary transition-colors flex items-center justify-center md:justify-start"
                                 >
                                     Detaylar
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteClick(item)}
+                                    disabled={deleteMutation.isPending}
+                                    className="px-4 py-2 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors flex items-center justify-center md:justify-start"
+                                >
+                                    <Trash2 size={14} className="mr-1" />
+                                    Sil
                                 </button>
                             </div>
                         </motion.div>

@@ -17,6 +17,16 @@ export class PurchasesController {
         return this.purchasesService.findAll();
     }
 
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.purchasesService.findOne(id);
+    }
+
+    @Patch(':id')
+    update(@Param('id') id: string, @Body() updateData: any) {
+        return this.purchasesService.update(id, updateData);
+    }
+
     @Patch(':id/receive')
     receive(@Param('id') id: string) {
         return this.purchasesService.receivePurchase(id);

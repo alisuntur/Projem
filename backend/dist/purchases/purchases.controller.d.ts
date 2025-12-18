@@ -6,6 +6,8 @@ export declare class PurchasesController {
     constructor(purchasesService: PurchasesService);
     create(createPurchaseDto: CreatePurchaseDto): Promise<import("./purchase.entity").Purchase>;
     findAll(): Promise<import("./purchase.entity").Purchase[]>;
+    findOne(id: string): Promise<import("./purchase.entity").Purchase | null>;
+    update(id: string, updateData: any): Promise<import("./purchase.entity").Purchase | null>;
     receive(id: string): Promise<import("./purchase.entity").Purchase>;
     updateStatus(id: string, status: PurchaseStatus): Promise<import("./purchase.entity").Purchase>;
 }

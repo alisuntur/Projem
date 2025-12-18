@@ -30,44 +30,44 @@ export default function DashboardLayout() {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        // TODO: clear auth
         navigate('/login');
     }
 
     return (
-        <div className="min-h-screen bg-background flex">
-            {/* Sidebar */}
+        <div className="h-screen bg-background flex overflow-hidden">
+            {/* Sidebar - Fixed Position */}
             <motion.aside
                 initial={false}
-                animate={{ width: isSidebarOpen ? 260 : 80 }}
-                className="bg-surface border-r border-accent hidden md:flex flex-col relative z-20"
+                animate={{ width: isSidebarOpen ? 220 : 72 }}
+                className="h-screen bg-surface border-r border-accent hidden md:flex flex-col flex-shrink-0"
             >
                 {/* Logo */}
-                <div className="h-20 flex items-center px-6 border-b border-accent">
-                    <div className="text-primary text-2xl font-bold truncate">
-                        {isSidebarOpen ? 'Yönetim Paneli' : 'S.'}
+                <div className="h-16 flex items-center px-4 border-b border-accent">
+                    <div className="text-primary text-xl font-bold truncate">
+                        {isSidebarOpen ? 'Halı Sarayı' : 'H'}
                     </div>
                 </div>
 
-                {/* Navigation */}
-                <nav className="flex-1 py-6 px-3 space-y-2">
+                {/* Navigation - Fixed, no scroll */}
+                <nav className="flex-1 py-4 px-2 space-y-1 overflow-hidden">
                     {SIDEBAR_ITEMS.map((item) => (
                         <NavLink
                             key={item.path}
                             to={item.path}
                             className={({ isActive }) => cn(
-                                "flex items-center px-3 py-3 rounded-lg transition-all group",
+                                "flex items-center px-3 py-2.5 rounded-lg transition-all group",
+                                isSidebarOpen ? "" : "justify-center",
                                 isActive
-                                    ? "bg-primary/10 text-primary"
+                                    ? "bg-primary text-white shadow-lg shadow-primary/20"
                                     : "text-text-muted hover:bg-white/5 hover:text-white"
                             )}
                         >
-                            <item.icon size={22} strokeWidth={1.5} />
+                            <item.icon size={20} strokeWidth={1.5} />
                             {isSidebarOpen && (
                                 <motion.span
                                     initial={{ opacity: 0 }}
                                     animate={{ opacity: 1 }}
-                                    className="ml-3 font-medium whitespace-nowrap"
+                                    className="ml-3 text-sm font-medium whitespace-nowrap"
                                 >
                                     {item.label}
                                 </motion.span>
@@ -76,45 +76,53 @@ export default function DashboardLayout() {
                     ))}
                 </nav>
 
-                {/* User Profile / Logout */}
-                <div className="p-3 border-t border-accent">
+                {/* User Profile / Logout - Fixed at bottom */}
+                <div className="p-2 border-t border-accent">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center w-full px-3 py-3 text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
+                        className={cn(
+                            "flex items-center w-full px-3 py-2.5 text-text-muted hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors",
+                            isSidebarOpen ? "" : "justify-center"
+                        )}
                     >
-                        <LogOut size={22} strokeWidth={1.5} />
-                        {isSidebarOpen && <span className="ml-3 font-medium">Çıkış Yap</span>}
+                        <LogOut size={20} strokeWidth={1.5} />
+                        {isSidebarOpen && <span className="ml-3 text-sm font-medium">Çıkış Yap</span>}
                     </button>
                 </div>
             </motion.aside>
 
             {/* Main Content */}
-            <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                {/* Header */}
-                <header className="h-20 bg-surface border-b border-accent flex items-center justify-between px-8">
+            <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+                {/* Header - Fixed */}
+                <header className="h-16 bg-surface border-b border-accent flex items-center justify-between px-6 flex-shrink-0">
                     <div className="flex items-center">
                         <button
                             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                            className="p-2 rounded-lg hover:bg-white/5 text-text-muted"
+                            className="p-2 rounded-lg hover:bg-white/5 text-text-muted transition-colors"
                         >
                             <Menu size={20} />
                         </button>
-                        <h2 className="ml-4 text-lg font-semibold text-white">
-                            Hoşgeldiniz, Bayi
+                        <h2 className="ml-4 text-base font-semibold text-white">
+                            Hoşgeldiniz
                         </h2>
                     </div>
 
-                    <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+                    <div className="flex items-center space-x-3">
+                        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
                             B
                         </div>
                     </div>
                 </header>
 
-                {/* Page Content */}
-                <div className="flex-1 overflow-auto p-8">
+                {/* Page Content - Scrollable */}
+                <div className="flex-1 overflow-auto p-6">
                     <Outlet />
                 </div>
+
+                {/* Footer - Fixed at bottom */}
+                <footer className="py-3 px-6 border-t border-accent text-center text-text-muted text-xs flex-shrink-0">
+                    © 2025 Anka. Tüm Hakları Saklıdır.
+                </footer>
             </main>
         </div>
     );

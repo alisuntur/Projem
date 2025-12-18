@@ -7,5 +7,7 @@ export declare class ProductsController {
     findAll(supplierId?: string): Promise<Product[]>;
     findOne(id: string): Promise<Product | null>;
     update(id: string, updateProductDto: Partial<Product>): Promise<Product | null>;
-    remove(id: string): Promise<import("typeorm").DeleteResult>;
+    remove(id: string): Promise<{
+        deleted: boolean;
+    }>;
 }

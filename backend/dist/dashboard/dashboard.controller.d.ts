@@ -7,13 +7,28 @@ export declare class DashboardController {
             revenue: number;
             pendingOrders: number;
             criticalStock: number;
-            balance: number;
+            customerBalance: number;
+            supplierBalance: number;
+            totalIncome: number;
+            totalExpense: number;
+            totalPurchases: number;
+            customerCount: number;
+            supplierCount: number;
+            productCount: number;
         };
         salesChart: {
             name: string;
             uv: number;
         }[];
         brandChart: {
+            name: string;
+            value: number;
+        }[];
+        topSuppliers: {
+            name: string;
+            value: number;
+        }[];
+        topCustomers: {
             name: string;
             value: number;
         }[];

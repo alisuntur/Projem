@@ -8,16 +8,19 @@ import {
     CheckCircle2,
     Download,
     Factory,
-    Loader2
+    Loader2,
+    Pencil
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import SlideOver from '../components/SlideOver';
 import NewPurchaseForm from '../components/NewPurchaseForm';
+import EditPurchaseForm from '../components/EditPurchaseForm';
 import { useToast } from '../components/ui/Toast';
 
 export default function Purchases() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isNewPurchaseOpen, setIsNewPurchaseOpen] = useState(false);
+    const [editingPurchase, setEditingPurchase] = useState<any>(null);
     const { showToast } = useToast();
     const queryClient = useQueryClient();
 
@@ -209,7 +212,17 @@ export default function Purchases() {
                                                     <option value="Teslim Alındı">Teslim Alındı</option>
                                                 </select>
                                             </td>
-                                            <td className="px-6 py-4 text-right">
+                                            <td className="px-6 py-4 text-right space-x-2">
+                                                <button
+                                                    onClick={() => {
+                                                        const fullPurchase = purchases?.find((p: any) => p.id === item.fullId);
+                                                        setEditingPurchase(fullPurchase);
+                                                    }}
+                                                    className="text-yellow-400 hover:text-yellow-300 transition-colors text-xs border border-yellow-400/30 hover:border-yellow-300/50 px-2 py-1 rounded bg-yellow-400/10"
+                                                >
+                                                    <Pencil size={12} className="inline mr-1" />
+                                                    Düzenle
+                                                </button>
                                                 {item.status !== 'Teslim Alındı' && (
                                                     <button
                                                         onClick={() => handleReceive(item.fullId)}
@@ -234,6 +247,14 @@ export default function Purchases() {
                 title="Fabrika Siparişi Oluştur (Satın Alma)"
             >
                 <NewPurchaseForm onClose={() => setIsNewPurchaseOpen(false)} />
+            </SlideOver>
+
+            <SlideOver
+                isOpen={!!editingPurchase}
+                onClose={() => setEditingPurchase(null)}
+                title="Satın Alma Düzenle"
+            >
+                {editingPurchase && <EditPurchaseForm purchase={editingPurchase} onClose={() => setEditingPurchase(null)} />}
             </SlideOver>
         </>
     );

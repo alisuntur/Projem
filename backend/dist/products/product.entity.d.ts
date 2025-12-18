@@ -5,6 +5,8 @@ export declare class Product {
     sku: string;
     brand: string;
     category: string;
+    width: number;
+    height: number;
     size: string;
     stock: number;
     criticalLevel: number;

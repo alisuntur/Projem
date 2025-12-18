@@ -19,8 +19,10 @@ const typeorm_2 = require("typeorm");
 const product_entity_1 = require("./product.entity");
 let ProductsService = class ProductsService {
     productsRepository;
-    constructor(productsRepository) {
+    dataSource;
+    constructor(productsRepository, dataSource) {
         this.productsRepository = productsRepository;
+        this.dataSource = dataSource;
     }
     create(createProductDto) {
         const product = this.productsRepository.create(createProductDto);
@@ -41,14 +43,36 @@ let ProductsService = class ProductsService {
         await this.productsRepository.update(id, updateProductDto);
         return this.findOne(id);
     }
-    remove(id) {
-        return this.productsRepository.delete(id);
+    async remove(id) {
+        const product = await this.productsRepository.findOneBy({ id });
+        if (!product)
+            return { deleted: false };
+        const queryRunner = this.dataSource.createQueryRunner();
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
+        try {
+            await queryRunner.query(`DELETE FROM supplier_products WHERE "productId" = $1`, [id]);
+            await queryRunner.query(`DELETE FROM sale_items WHERE "productId" = $1`, [id]);
+            await queryRunner.query(`DELETE FROM purchase_items WHERE "productId" = $1`, [id]);
+            await queryRunner.query(`DELETE FROM products WHERE id = $1`, [id]);
+            await queryRunner.commitTransaction();
+            return { deleted: true };
+        }
+        catch (err) {
+            console.error('PRODUCT DELETE ERROR:', err);
+            await queryRunner.rollbackTransaction();
+            throw err;
+        }
+        finally {
+            await queryRunner.release();
+        }
     }
 };
 exports.ProductsService = ProductsService;
 exports.ProductsService = ProductsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(product_entity_1.Product)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.DataSource])
 ], ProductsService);
 //# sourceMappingURL=products.service.js.map

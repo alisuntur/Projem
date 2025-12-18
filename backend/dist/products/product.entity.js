@@ -18,6 +18,8 @@ let Product = class Product {
     sku;
     brand;
     category;
+    width;
+    height;
     size;
     stock;
     criticalLevel;
@@ -48,6 +50,14 @@ __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)
 ], Product.prototype, "category", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 6, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Product.prototype, "width", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'decimal', precision: 6, scale: 2, nullable: true }),
+    __metadata("design:type", Number)
+], Product.prototype, "height", void 0);
 __decorate([
     (0, typeorm_1.Column)({ nullable: true }),
     __metadata("design:type", String)

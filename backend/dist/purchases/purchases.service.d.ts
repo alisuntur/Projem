@@ -9,6 +9,8 @@ export declare class PurchasesService {
     constructor(purchasesRepository: Repository<Purchase>, supplierRepository: Repository<Supplier>, dataSource: DataSource);
     create(createPurchaseDto: CreatePurchaseDto): Promise<Purchase>;
     findAll(): Promise<Purchase[]>;
+    findOne(id: string): Promise<Purchase | null>;
+    update(id: string, updateData: any): Promise<Purchase | null>;
     receivePurchase(id: string): Promise<Purchase>;
     updateStatus(id: string, status: PurchaseStatus): Promise<Purchase>;
 }
