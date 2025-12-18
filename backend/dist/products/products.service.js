@@ -26,8 +26,13 @@ let ProductsService = class ProductsService {
         const product = this.productsRepository.create(createProductDto);
         return this.productsRepository.save(product);
     }
-    findAll() {
-        return this.productsRepository.find({ order: { name: 'ASC' } });
+    findAll(supplierId) {
+        if (supplierId) {
+            return this.productsRepository.createQueryBuilder('product')
+                .innerJoinAndSelect('product.suppliers', 'supplier', 'supplier.id = :supplierId', { supplierId })
+                .getMany();
+        }
+        return this.productsRepository.find({ relations: ['suppliers'], order: { name: 'ASC' } });
     }
     findOne(id) {
         return this.productsRepository.findOneBy({ id });

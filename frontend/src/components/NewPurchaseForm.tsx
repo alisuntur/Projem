@@ -1,18 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { purchasesApi, productsApi } from '../services/api'; // Assuming productsApi needed for product selection
+import { purchasesApi, productsApi, suppliersApi } from '../services/api';
 import { useToast } from './ui/Toast';
 import { Loader2, Plus, X } from 'lucide-react';
 
 export default function NewPurchaseForm({ onClose }: { onClose: () => void }) {
-    const [factoryName, setFactoryName] = useState('Merinos Ana Fabrika');
+    const [selectedSupplierId, setSelectedSupplierId] = useState<number>(0);
     const [items, setItems] = useState<{ productId: number, quantity: number, unitPrice: number }[]>([]);
 
-    // Fetch products to select from
-    const { data: products } = useQuery({
-        queryKey: ['products'],
-        queryFn: productsApi.getAll,
+    // Fetch Suppliers
+    const { data: suppliers } = useQuery<any[]>({
+        queryKey: ['suppliers'],
+        queryFn: suppliersApi.getAll,
     });
+
+    // Fetch Products filtered by Supplier
+    const { data: products } = useQuery<any[]>({
+        queryKey: ['products', selectedSupplierId],
+        queryFn: () => productsApi.getAll(selectedSupplierId ? selectedSupplierId : undefined),
+        enabled: selectedSupplierId > 0
+    });
+
+    // Set default supplier if none selected (optional, or force user to select)
+    useEffect(() => {
+        if (suppliers && suppliers.length > 0 && selectedSupplierId === 0) {
+            setSelectedSupplierId(suppliers[0].id);
+        }
+    }, [suppliers]);
 
     const queryClient = useQueryClient();
     const { showToast } = useToast();
@@ -63,8 +77,10 @@ export default function NewPurchaseForm({ onClose }: { onClose: () => void }) {
             return;
         }
 
+        const selectedSupplier = suppliers?.find((s: any) => s.id === selectedSupplierId);
+
         const payload = {
-            factoryName,
+            factoryName: selectedSupplier?.name || 'Bilinmiyor',
             items: validItems
         };
 
@@ -74,16 +90,19 @@ export default function NewPurchaseForm({ onClose }: { onClose: () => void }) {
     return (
         <div className="space-y-6">
             <div className="space-y-2">
-                <label className="text-sm text-text-muted">Tedarikçi Fabrika</label>
+                <label className="text-sm text-text-muted">Tedarikçi Fabrika / Toptancı</label>
                 <select
-                    value={factoryName}
-                    onChange={(e) => setFactoryName(e.target.value)}
+                    value={selectedSupplierId}
+                    onChange={(e) => {
+                        setSelectedSupplierId(Number(e.target.value));
+                        setItems([]); // Clear items when supplier changes to avoid mismatch
+                    }}
                     className="w-full bg-background border border-accent rounded-lg px-4 py-3 text-white focus:outline-none focus:border-primary"
                 >
-                    <option>Merinos Ana Fabrika</option>
-                    <option>Padişah Dokuma A.Ş.</option>
-                    <option>Artemis Halı</option>
-                    <option>Royal Halı</option>
+                    <option value={0}>Seçiniz...</option>
+                    {suppliers?.map((s: any) => (
+                        <option key={s.id} value={s.id}>{s.name} ({s.type === 'Factory' ? 'Fabrika' : 'Toptancı'})</option>
+                    ))}
                 </select>
             </div>
 

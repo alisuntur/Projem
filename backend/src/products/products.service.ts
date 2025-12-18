@@ -25,4 +25,15 @@ export class ProductsService {
     }
 
     findOne(id: number) {
-        return this.productsReposit
+        return this.productsRepository.findOneBy({ id });
+    }
+
+    async update(id: number, updateProductDto: Partial<Product>) {
+        await this.productsRepository.update(id, updateProductDto);
+        return this.findOne(id);
+    }
+
+    remove(id: number) {
+        return this.productsRepository.delete(id);
+    }
+}

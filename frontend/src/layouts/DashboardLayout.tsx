@@ -7,17 +7,18 @@ import {
     Users,
     Menu,
     LogOut,
-    X,
     ShoppingBag,
-    Factory
+    Factory,
+    Building2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 const SIDEBAR_ITEMS = [
     { icon: LayoutDashboard, label: 'Panel', path: '/dashboard' },
     { icon: ShoppingBag, label: 'Satışlar', path: '/sales' },
     { icon: Factory, label: 'Satın Alma', path: '/purchases' },
+    { icon: Building2, label: 'Tedarikçiler', path: '/suppliers' },
     { icon: Package, label: 'Stok', path: '/inventory' },
     { icon: Users, label: 'Müşteriler', path: '/customers' },
 ];

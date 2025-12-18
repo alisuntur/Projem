@@ -26,4 +26,7 @@ import { SuppliersModule } from './suppliers/suppliers.module';
     PurchasesModule,
     SuppliersModule
   ],
-  contr
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule { }

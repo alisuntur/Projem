@@ -34,4 +34,11 @@ export class Product {
     imageUrl: string;
 
     @CreateDateColumn()
-    
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
+
+    @ManyToMany(() => Supplier, (supplier) => supplier.products)
+    suppliers: Supplier[];
+}

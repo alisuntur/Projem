@@ -1,0 +1,11 @@
+import { Product } from '../products/product.entity';
+export declare class Supplier {
+    id: number;
+    name: string;
+    type: string;
+    contactInfo: string;
+    address: string;
+    products: Product[];
+    createdAt: Date;
+    updatedAt: Date;
+}

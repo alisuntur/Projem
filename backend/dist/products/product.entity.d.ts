@@ -1,3 +1,4 @@
+import { Supplier } from '../suppliers/supplier.entity';
 export declare class Product {
     id: number;
     name: string;
@@ -11,4 +12,5 @@ export declare class Product {
     imageUrl: string;
     createdAt: Date;
     updatedAt: Date;
+    suppliers: Supplier[];
 }
