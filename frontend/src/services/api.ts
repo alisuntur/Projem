@@ -59,6 +59,13 @@ export const salesApi = {
     }
 };
 
+export const dashboardApi = {
+    getOverview: async () => {
+        const response = await api.get('/dashboard/overview');
+        return response.data;
+    }
+};
+
 export const purchasesApi = {
     getAll: async () => {
         const response = await api.get('/purchases');

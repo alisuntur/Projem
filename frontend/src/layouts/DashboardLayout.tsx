@@ -43,7 +43,7 @@ export default function DashboardLayout() {
                 {/* Logo */}
                 <div className="h-20 flex items-center px-6 border-b border-accent">
                     <div className="text-primary text-2xl font-bold truncate">
-                        {isSidebarOpen ? 'Stitch.' : 'S.'}
+                        {isSidebarOpen ? 'Yönetim Paneli' : 'S.'}
                     </div>
                 </div>
 
