@@ -238,7 +238,7 @@ export default function Customers() {
                 onClose={() => setIsStatementOpen(false)}
                 title={`${selectedCustomer?.company || 'Müşteri'} - Hesap Ekstresi`}
             >
-                <CustomerStatement customerName={selectedCustomer?.company} />
+                <CustomerStatement customerId={selectedCustomer?.id} customerName={selectedCustomer?.company} />
             </SlideOver>
         </>
     );

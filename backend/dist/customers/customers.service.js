@@ -42,6 +42,65 @@ let CustomersService = class CustomersService {
         await this.customersRepository.update(id, updateCustomerDto);
         return this.findOne(id);
     }
+    async getStatement(id) {
+        const customer = await this.customersRepository.findOneBy({ id });
+        if (!customer)
+            return null;
+        const sales = await this.saleRepository.find({
+            where: { customer: { id } },
+            order: { date: 'DESC' },
+            relations: ['items']
+        });
+        const payments = await this.paymentRepository.find({
+            where: { partyType: 'customer', partyId: id },
+            order: { date: 'DESC' }
+        });
+        const transactions = [];
+        for (const sale of sales) {
+            transactions.push({
+                id: sale.id,
+                type: 'sale',
+                date: sale.date,
+                description: `Sipariş #${sale.id.substring(0, 8)}`,
+                amount: Number(sale.totalAmount),
+                debit: Number(sale.totalAmount),
+                credit: 0
+            });
+        }
+        for (const payment of payments) {
+            transactions.push({
+                id: `PAY-${payment.id}`,
+                type: payment.type === 'income' ? 'payment' : 'refund',
+                date: payment.date,
+                description: payment.description || (payment.type === 'income' ? 'Tahsilat' : 'İade'),
+                amount: Number(payment.amount),
+                debit: payment.type === 'income' ? 0 : Number(payment.amount),
+                credit: payment.type === 'income' ? Number(payment.amount) : 0
+            });
+        }
+        transactions.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        let runningBalance = 0;
+        const transactionsWithBalance = [...transactions].reverse().map(trx => {
+            if (trx.type === 'sale') {
+                runningBalance -= trx.amount;
+            }
+            else if (trx.type === 'payment') {
+                runningBalance += trx.amount;
+            }
+            else {
+                runningBalance -= trx.amount;
+            }
+            return { ...trx, balance: runningBalance };
+        }).reverse();
+        return {
+            customer: {
+                id: customer.id,
+                name: customer.name,
+                balance: customer.balance
+            },
+            transactions: transactionsWithBalance
+        };
+    }
     async remove(id) {
         const queryRunner = this.customersRepository.manager.connection.createQueryRunner();
         await queryRunner.connect();

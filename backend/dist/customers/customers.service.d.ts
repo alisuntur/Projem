@@ -11,6 +11,14 @@ export declare class CustomersService {
     findAll(): Promise<Customer[]>;
     findOne(id: number): Promise<Customer | null>;
     update(id: number, updateCustomerDto: Partial<Customer>): Promise<Customer | null>;
+    getStatement(id: number): Promise<{
+        customer: {
+            id: number;
+            name: string;
+            balance: number;
+        };
+        transactions: any[];
+    } | null>;
     remove(id: number): Promise<{
         deleted: boolean;
     }>;

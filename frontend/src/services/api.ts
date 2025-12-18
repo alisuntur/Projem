@@ -21,6 +21,10 @@ export const customersApi = {
         const response = await api.delete(`/customers/${id}`);
         return response.data;
     },
+    getStatement: async (id: number) => {
+        const response = await api.get(`/customers/${id}/statement`);
+        return response.data;
+    },
 };
 
 export const productsApi = {

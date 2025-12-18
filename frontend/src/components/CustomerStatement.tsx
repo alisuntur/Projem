@@ -1,29 +1,45 @@
-import { Download, FileText, TrendingUp, Calendar } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { customersApi } from '../services/api';
+import { Download, FileText, TrendingUp, Loader2 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const TRANSACTIONS = [
-    { id: 'TRX-998', type: 'Sipariş', date: '16.12.2024', desc: 'Sipariş #ORD-24-1001', debit: '₺45.200', credit: '-', balance: '₺-124.500' },
-    { id: 'TRX-997', type: 'Ödeme', date: '10.12.2024', desc: 'Havale/EFT Ödemesi', debit: '-', credit: '₺20.000', balance: '₺-79.300' },
-    { id: 'TRX-996', type: 'Sipariş', date: '05.12.2024', desc: 'Sipariş #ORD-24-0980', debit: '₺15.000', credit: '-', balance: '₺-99.300' },
-    { id: 'TRX-995', type: 'İade', date: '01.12.2024', desc: 'İade Faturası #IADE-01', debit: '-', credit: '₺5.000', balance: '₺-84.300' },
-];
+export default function CustomerStatement({ customerId, customerName }: { customerId: number, customerName: string }) {
+    const { data, isLoading, error } = useQuery({
+        queryKey: ['customer-statement', customerId],
+        queryFn: () => customersApi.getStatement(customerId),
+        enabled: !!customerId
+    });
 
-const CUSTOMER_SALES_DATA = [
-    { name: 'Ocak', satis: 12000 },
-    { name: 'Şub', satis: 19000 },
-    { name: 'Mar', satis: 3000 },
-    { name: 'Nis', satis: 25000 },
-    { name: 'May', satis: 15000 },
-    { name: 'Haz', satis: 40000 },
-];
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-64 text-text-muted">
+                <Loader2 className="animate-spin mr-2" /> Yükleniyor...
+            </div>
+        );
+    }
 
-export default function CustomerStatement({ customerName }: { customerName: string }) {
+    if (error || !data) {
+        return (
+            <div className="flex items-center justify-center h-64 text-red-400">
+                Hesap ekstresi yüklenirken hata oluştu.
+            </div>
+        );
+    }
+
+    const transactions = data.transactions || [];
+    const currentBalance = Number(data.customer?.balance || 0);
+
+    // Generate chart data from transactions (group by month)
+    const chartData = generateChartData(transactions);
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between p-4 bg-surface border border-accent rounded-lg">
                 <div>
                     <p className="text-text-muted text-sm">Toplam Bakiye</p>
-                    <p className="text-2xl font-bold text-red-500">₺-124.500</p>
+                    <p className={`text-2xl font-bold ${currentBalance < 0 ? 'text-red-500' : 'text-green-500'}`}>
+                        ₺{currentBalance.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+                    </p>
                 </div>
                 <button className="flex items-center px-4 py-2 bg-background border border-accent rounded-lg text-sm hover:text-white transition-colors">
                     <Download size={16} className="mr-2" />
@@ -32,38 +48,40 @@ export default function CustomerStatement({ customerName }: { customerName: stri
             </div>
 
             {/* Customer Visual Analytics */}
-            <div className="space-y-2">
-                <h3 className="text-sm font-semibold text-white flex items-center">
-                    <TrendingUp size={16} className="mr-2 text-primary" />
-                    Alım Grafiği (Son 6 Ay)
-                </h3>
-                <div className="bg-surface border border-accent rounded-lg p-4 h-48">
-                    <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={CUSTOMER_SALES_DATA}>
-                            <defs>
-                                <linearGradient id="colorSatis" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#13a4ec" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#13a4ec" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#1f2d33" vertical={false} />
-                            <XAxis
-                                dataKey="name"
-                                stroke="#6b7280"
-                                axisLine={false}
-                                tickLine={false}
-                                tick={{ fontSize: 10 }}
-                            />
-                            <Tooltip
-                                contentStyle={{ backgroundColor: '#1a262c', borderColor: '#1f2d33', color: '#fff', borderRadius: '8px', fontSize: '12px' }}
-                                itemStyle={{ color: '#13a4ec' }}
-                                formatter={(value: number) => [`₺${value}`, 'Alım'] as [string, string]}
-                            />
-                            <Area type="monotone" dataKey="satis" stroke="#13a4ec" strokeWidth={2} fillOpacity={1} fill="url(#colorSatis)" />
-                        </AreaChart>
-                    </ResponsiveContainer>
+            {chartData.length > 0 && (
+                <div className="space-y-2">
+                    <h3 className="text-sm font-semibold text-white flex items-center">
+                        <TrendingUp size={16} className="mr-2 text-primary" />
+                        Alım Grafiği
+                    </h3>
+                    <div className="bg-surface border border-accent rounded-lg p-4 h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={chartData}>
+                                <defs>
+                                    <linearGradient id="colorSatis" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#13a4ec" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#13a4ec" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#1f2d33" vertical={false} />
+                                <XAxis
+                                    dataKey="name"
+                                    stroke="#6b7280"
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tick={{ fontSize: 10 }}
+                                />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1a262c', borderColor: '#1f2d33', color: '#fff', borderRadius: '8px', fontSize: '12px' }}
+                                    itemStyle={{ color: '#13a4ec' }}
+                                    formatter={(value: number) => [`₺${value.toLocaleString('tr-TR')}`, 'Alım'] as [string, string]}
+                                />
+                                <Area type="monotone" dataKey="amount" stroke="#13a4ec" strokeWidth={2} fillOpacity={1} fill="url(#colorSatis)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
-            </div>
+            )}
 
             <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-white flex items-center">
@@ -83,16 +101,33 @@ export default function CustomerStatement({ customerName }: { customerName: stri
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-accent">
-                            {TRANSACTIONS.map((trx) => (
-                                <tr key={trx.id} className="hover:bg-white/5 transition-colors">
-                                    <td className="px-4 py-3 text-text-muted">{trx.date}</td>
-                                    <td className="px-4 py-3">
-                                        <div className="text-white">{trx.type}</div>
-                                        <div className="text-xs text-text-muted">{trx.desc}</div>
+                            {transactions.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="px-4 py-8 text-center text-text-muted">
+                                        Hesap hareketi bulunamadı.
                                     </td>
-                                    <td className="px-4 py-3 text-right text-white font-medium">{trx.debit}</td>
-                                    <td className="px-4 py-3 text-right text-green-400 font-medium">{trx.credit}</td>
-                                    <td className="px-4 py-3 text-right text-red-400 font-bold">{trx.balance}</td>
+                                </tr>
+                            )}
+                            {transactions.map((trx: any) => (
+                                <tr key={trx.id} className="hover:bg-white/5 transition-colors">
+                                    <td className="px-4 py-3 text-text-muted">
+                                        {new Date(trx.date).toLocaleDateString('tr-TR')}
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="text-white">
+                                            {trx.type === 'sale' ? 'Sipariş' : trx.type === 'payment' ? 'Tahsilat' : 'İade'}
+                                        </div>
+                                        <div className="text-xs text-text-muted">{trx.description}</div>
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-white font-medium">
+                                        {trx.debit > 0 ? `₺${trx.debit.toLocaleString('tr-TR')}` : '-'}
+                                    </td>
+                                    <td className="px-4 py-3 text-right text-green-400 font-medium">
+                                        {trx.credit > 0 ? `₺${trx.credit.toLocaleString('tr-TR')}` : '-'}
+                                    </td>
+                                    <td className={`px-4 py-3 text-right font-bold ${trx.balance < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                        ₺{trx.balance.toLocaleString('tr-TR')}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
@@ -101,4 +136,32 @@ export default function CustomerStatement({ customerName }: { customerName: stri
             </div>
         </div>
     );
+}
+
+function generateChartData(transactions: any[]) {
+    const monthlyData: { [key: string]: number } = {};
+
+    transactions
+        .filter(t => t.type === 'sale')
+        .forEach(t => {
+            const date = new Date(t.date);
+            const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+            const monthName = date.toLocaleDateString('tr-TR', { month: 'short' });
+
+            if (!monthlyData[monthKey]) {
+                monthlyData[monthKey] = 0;
+            }
+            monthlyData[monthKey] += t.amount;
+        });
+
+    return Object.entries(monthlyData)
+        .slice(-6)
+        .map(([key, amount]) => {
+            const [year, month] = key.split('-');
+            const date = new Date(parseInt(year), parseInt(month));
+            return {
+                name: date.toLocaleDateString('tr-TR', { month: 'short' }),
+                amount
+            };
+        });
 }

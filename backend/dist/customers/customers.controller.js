@@ -32,6 +32,9 @@ let CustomersController = class CustomersController {
     update(id, updateCustomerDto) {
         return this.customersService.update(+id, updateCustomerDto);
     }
+    getStatement(id) {
+        return this.customersService.getStatement(+id);
+    }
     remove(id) {
         return this.customersService.remove(+id);
     }
@@ -65,6 +68,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", void 0)
 ], CustomersController.prototype, "update", null);
+__decorate([
+    (0, common_1.Get)(':id/statement'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], CustomersController.prototype, "getStatement", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     __param(0, (0, common_1.Param)('id')),

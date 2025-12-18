@@ -26,6 +26,11 @@ export class CustomersController {
         return this.customersService.update(+id, updateCustomerDto);
     }
 
+    @Get(':id/statement')
+    getStatement(@Param('id') id: string) {
+        return this.customersService.getStatement(+id);
+    }
+
     @Delete(':id')
     remove(@Param('id') id: string) {
         return this.customersService.remove(+id);
