@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Patch } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './create-sale.dto';
 
@@ -12,8 +12,18 @@ export class SalesController {
     }
 
     @Get()
-    findAll() {
-        return this.salesService.findAll();
+    findAll(
+        @Query('page') page: string,
+        @Query('limit') limit: string,
+        @Query('search') search: string,
+        @Query('status') status: string
+    ) {
+        return this.salesService.findAll(page ? +page : 1, limit ? +limit : 10, search, status);
+    }
+
+    @Patch(':id/status')
+    updateStatus(@Param('id') id: string, @Body('status') status: string) {
+        return this.salesService.updateStatus(id, status);
     }
 
     @Get(':id')

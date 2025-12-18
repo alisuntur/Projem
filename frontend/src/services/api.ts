@@ -36,8 +36,9 @@ export const productsApi = {
 };
 
 export const salesApi = {
-    getAll: async () => {
-        const response = await api.get('/sales');
+    getAll: async (page = 1, limit = 10, search = '', status = '') => {
+        const params = { page, limit, search, status };
+        const response = await api.get('/sales', { params });
         return response.data;
     },
     create: async (data: any) => {
@@ -48,6 +49,10 @@ export const salesApi = {
         const response = await api.get(`/sales/${id}`);
         return response.data;
     },
+    updateStatus: async (id: string, status: string) => {
+        const response = await api.patch(`/sales/${id}/status`, { status });
+        return response.data;
+    }
 };
 
 export const purchasesApi = {

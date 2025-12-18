@@ -1,12 +1,29 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { salesApi } from '../services/api';
-import { Package, Truck, CheckCircle2, User, MapPin, Calendar, CreditCard, Loader2 } from 'lucide-react';
+import { Package, Truck, CheckCircle2, User, MapPin, Calendar, CreditCard, Loader2, Edit } from 'lucide-react';
+import { useToast } from './ui/Toast';
 
 export default function OrderDetail({ orderId }: { orderId: string }) {
+    const { showToast } = useToast();
+    const queryClient = useQueryClient();
+    const [isEditingStatus, setIsEditingStatus] = useState(false);
+
     const { data: sale, isLoading } = useQuery({
         queryKey: ['sale', orderId],
         queryFn: () => salesApi.getOne(orderId),
         enabled: !!orderId
+    });
+
+    const updateStatusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string, status: string }) => salesApi.updateStatus(id, status),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['sale', orderId] });
+            queryClient.invalidateQueries({ queryKey: ['sales'] }); // Refresh list
+            showToast('Sipariş durumu güncellendi.', 'success');
+            setIsEditingStatus(false);
+        },
+        onError: () => showToast('Durum güncellenemedi.', 'error')
     });
 
     if (!orderId) return null;
@@ -37,9 +54,36 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${i <= currentStepIndex ? 'bg-primary text-white' : 'bg-surface border-2 border-accent text-text-muted'}`}>
                             {i <= currentStepIndex ? <CheckCircle2 size={16} /> : i + 1}
                         </div>
-                        <span className="text-xs text-text-muted">{step}</span>
+                        <span className="text-xs text-text-muted hidden md:block">{step}</span>
                     </div>
                 ))}
+            </div>
+
+            {/* Manual Status Update */}
+            <div className="bg-surface border border-accent p-4 rounded-lg flex items-center justify-between">
+                <div>
+                    <h4 className="text-sm font-medium text-white">Sipariş Durumu</h4>
+                    <p className="text-xs text-text-muted">Şu anki durum: <span className="text-primary">{sale.status}</span></p>
+                </div>
+                {isEditingStatus ? (
+                    <div className="flex gap-2">
+                        <select
+                            className="bg-background border border-accent rounded text-sm text-white px-2 py-1"
+                            defaultValue={sale.status}
+                            onChange={(e) => updateStatusMutation.mutate({ id: orderId, status: e.target.value })}
+                        >
+                            {steps.map(s => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                        <button onClick={() => setIsEditingStatus(false)} className="text-xs text-red-400">İptal</button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setIsEditingStatus(true)}
+                        className="text-sm text-primary hover:text-primary-hover flex items-center"
+                    >
+                        <Edit size={14} className="mr-1" /> Değiştir
+                    </button>
+                )}
             </div>
 
             {/* Info Cards */}
@@ -89,15 +133,20 @@ export default function OrderDetail({ orderId }: { orderId: string }) {
             </div>
 
             <div className="grid grid-cols-2 gap-3 pt-4">
-                <button className="flex items-center justify-center py-3 bg-surface border border-accent rounded-lg text-text-muted hover:text-white transition-colors">
+                <button className="flex items-center justify-center py-3 bg-surface border border-accent rounded-lg text-text-muted hover:text-white transition-colors opacity-50 cursor-not-allowed">
                     <Calendar size={16} className="mr-2" />
                     Geçmişi Gör
                 </button>
-                <button className="flex items-center justify-center py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors">
+                <button
+                    onClick={() => showToast('Bu özellik yakında eklenecek.', 'info')}
+                    className="flex items-center justify-center py-3 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors"
+                >
                     <Truck size={16} className="mr-2" />
-                    Kargo Takip
+                    Kargo Takip No Gir
                 </button>
             </div>
         </div>
     );
 }
+
+

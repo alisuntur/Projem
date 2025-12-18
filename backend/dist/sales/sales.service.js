@@ -79,11 +79,29 @@ let SalesService = class SalesService {
             await queryRunner.release();
         }
     }
-    findAll() {
-        return this.salesRepository.find({
-            relations: ['items', 'customer'],
-            order: { date: 'DESC' }
-        });
+    async findAll(page = 1, limit = 10, search, status) {
+        const queryBuilder = this.salesRepository.createQueryBuilder('sale')
+            .leftJoinAndSelect('sale.items', 'items')
+            .leftJoinAndSelect('sale.customer', 'customer')
+            .orderBy('sale.date', 'DESC');
+        if (status && status !== 'All') {
+            queryBuilder.andWhere('sale.status = :status', { status });
+        }
+        if (search) {
+            queryBuilder.andWhere('(customer.name ILIKE :search OR sale.id::text ILIKE :search)', { search: `%${search}%` });
+        }
+        const [data, total] = await queryBuilder
+            .skip((page - 1) * limit)
+            .take(limit)
+            .getManyAndCount();
+        return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    }
+    async updateStatus(id, status) {
+        const sale = await this.findOne(id);
+        if (!sale)
+            throw new common_1.BadRequestException('Böyle bir satış bulunamadı.');
+        sale.status = status;
+        return this.salesRepository.save(sale);
     }
     findOne(id) {
         return this.salesRepository.findOne({
